@@ -1,0 +1,11 @@
+matplotlib
+numpy
+Cython
+pandas
+pytest
+scipy
+scikit-learn
+seaborn
+futures
+tqdm
+docopt

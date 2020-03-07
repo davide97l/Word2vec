@@ -253,8 +253,7 @@ class Word2VecModel(object):
 
 
 class WordVectors(object):
-    """Word vectors of trained Word2Vec model. Provides APIs for retrieving
-    word vector, and most similar words given a query word.
+    """Word vectors of trained Word2Vec model.
     """
     def __init__(self, syn0_final, vocab):
         """Constructor.
