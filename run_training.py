@@ -16,6 +16,7 @@ import os
 
 import tensorflow as tf
 import time
+import numpy as np
 
 from dataset import Word2VecDataset
 from word2vec import Word2VecModel
@@ -126,13 +127,13 @@ def main(_):
     if not os.path.exists(FLAGS.out_dir):
         os.makedirs(FLAGS.out_dir)
 
-    """np.save(os.path.join(FLAGS.out_dir, 'embed'), syn0_final)
+    np.save(os.path.join(FLAGS.out_dir, 'embed'), syn0_final)
     print("Embedding shape: ", syn0_final.shape)
     with open(os.path.join(FLAGS.out_dir, 'vocab.txt'), 'w', encoding="utf-8") as fid:
         for w in dataset.table_words:
             fid.write(w + '\n')
     print('Word embeddings saved to', os.path.join(FLAGS.out_dir, 'embed.npy'))
-    print('Vocabulary saved to', os.path.join(FLAGS.out_dir, 'vocab.txt'))"""
+    print('Vocabulary saved to', os.path.join(FLAGS.out_dir, 'vocab.txt'))
 
 
 if __name__ == '__main__':

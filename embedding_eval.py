@@ -6,25 +6,29 @@ from six import iteritems
 from web.datasets.similarity import fetch_MEN, fetch_WS353, fetch_SimLex999, fetch_RW, fetch_MTurk
 from web.datasets.analogy import fetch_google_analogy
 from itertools import chain
-from word2vec import WordVectors
 import argparse
+import os
 
 
 if __name__ == '__main__':
-    # python embedding_eval.py -e output_small_wiki_300/embed.npy -v output_small_wiki_300/vocab.txt -s -a
+    # python embedding_eval.py -e output_wiki_s_300/embed.npy -v output_wiki_s_300/vocab.txt -s -a
     ap = argparse.ArgumentParser()
     ap.add_argument("-e", "--embed_path", type=str, required=True,
                     help="path to the embedding (embedding.npy)")
     ap.add_argument("-v", "--vocab_path", type=str, required=True,
-                    help="path to the vocabulary (vocabulary-txt)")
+                    help="path to the vocabulary (vocabulary.txt)")
     ap.add_argument("-s", "--similarity", default=False, action='store_true',
                     help="compute similarity score")
     ap.add_argument("-a", "--analogy", default=False, action='store_true',
                     help="compute analogy score")
+    ap.add_argument("-sv", "--save_path", type=str, default="results/",
+                    help="path where to save the analogy results")
     args = vars(ap.parse_args())
+
     embed_path = args["embed_path"]
     vocab_path = args["vocab_path"]
     similarity = args["similarity"]
+    save_path = args["save_path"]
     analogy = args["analogy"]
     embed = np.load(embed_path)
     with open(vocab_path, encoding="utf8") as f:
@@ -47,6 +51,7 @@ if __name__ == '__main__':
             "RW": fetch_RW(),
             "MTurk": fetch_MTurk()
         }
+
         spearman_errors = []
         cosine_errors = []
         print("----------SIMILARITY----------")
@@ -66,7 +71,6 @@ if __name__ == '__main__':
                 # print(word1, word2, data.y[i], spearman_corr)
 
                 cosine_sim = 1 - spatial.distance.cosine(lookup_table(word1), lookup_table(word2))
-                cosine_sim = abs(cosine_sim)
                 cosine_err += abs(cosine_sim - data.y[i] / 10)
                 # print(word1, word2, data.y[i], cosine_sim)
 
@@ -80,37 +84,42 @@ if __name__ == '__main__':
 
     if analogy:
 
+        if not os.path.exists(save_path):
+            os.makedirs(save_path)
+        f = open(os.path.join(save_path, "analogy.txt"), "w+")
+
         # Fetch analogy dataset
         data = fetch_google_analogy()
 
-        # embedding wrapper
-        w = WordVectors(embed, vocab)
+        word_embed = dict(zip(vocab, embed))
 
         print("----------ANALOGY----------")
         # Pick a sample of data and calculate answers
         guessed = 0
-        subset = list(chain(range(50, 60), range(1000, 1010), range(4000, 4010), range(10000, 10010),
-                      range(14000, 14010)))
+        subset = list(chain(range(50, 70), range(1000, 1020), range(4000, 4020), range(10000, 10020),
+                      range(14000, 14020)))
         for id in subset:
             w1, w2, w3 = data.X[id][0], data.X[id][1], data.X[id][2]
             print("Question: {} is to {} as {} is to ?".format(w1, w2, w3))
+            f.write("Question: {} is to {} as {} is to ?\n".format(w1, w2, w3))
             print("Answer: " + data.y[id])
+            f.write("Answer: {}\n".format(data.y[id]))
             s = lookup_table(w2) - lookup_table(w1) + lookup_table(w3)
-            worst = 0.
-            best_word = None
-            temp_embed = list(embed)
-            np.delete(temp_embed, vocab.index(w1), 0)
-            np.delete(temp_embed, vocab.index(w2), 0)
-            np.delete(temp_embed, vocab.index(w3), 0)
+            best_match = 0.
+            best_index = 0
 
-            for e in temp_embed:
+            for i, (w, e) in enumerate(word_embed.items()):
+                if w == w1 or w == w2 or w == w3:
+                    continue
                 cosine_sim = 1 - spatial.distance.cosine(s, e)
-                if cosine_sim >= worst:
-                    worst = cosine_sim
-                    best_word = e
+                if cosine_sim >= best_match:
+                    best_match = cosine_sim
+                    best_index = i
 
-            index = np.where(np.all(embed == best_word, axis=1))[0][0]
-            print("Predicted: ", vocab[index])
-            if vocab[index] == data.y[id]:
+            print("Predicted: ", vocab[best_index])
+            f.write("Predicted: {}\n".format(vocab[best_index]))
+            if vocab[best_index] == data.y[id]:
                 guessed += 1
-        print("Questions correctly answered: {} / {}".format(len(subset), guessed))
+
+        print("Questions correctly answered: {} / {}".format(guessed, len(subset)))
+        f.close()
