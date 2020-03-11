@@ -154,6 +154,8 @@ if __name__ == '__main__':
                     help="cosine_sim_threshold")
     ap.add_argument("-t", "--score_margin_threshold", type=float, default=0.05,
                     help="score_margin_threshold")
+    ap.add_argument("-d", "--no_disambiguate", default=True, action='store_false',
+                    help="if sense disambiguation will not be performed")
     args = vars(ap.parse_args())
 
     vocab_path = args["vocab_path"]
@@ -162,10 +164,14 @@ if __name__ == '__main__':
     save_path = args["save_path"]
     score_margin_threshold = args["score_margin_threshold"]
     cosine_sim_threshold = args["cosine_sim_threshold"]
+    disambiguate = args["no_disambiguate"]
 
     vocab = get_txt_lines(vocab_path)
     embed = np.load(embed_path)
     rating = get_txt_lines(rating_path)
+
+    def lookup_table(word):
+        return embed[vocab.index(word)]
 
     """x, _ = sentence_disambiguation("open an account to deposit money in bank", embed, vocab)
     y, yy = sentence_disambiguation("ask your bank for a loan", embed, vocab, score_margin_threshold=0.01)
@@ -203,6 +209,9 @@ if __name__ == '__main__':
         e2, _ = sentence_disambiguation(sentence2_clean, embed, vocab, cosine_sim_threshold, score_margin_threshold)
         sense2 = e2[idx_w2]
         dist1_2 = cosine_similarity(sense1, sense2)
+
+        if not disambiguate:
+            dist1_2 = cosine_similarity(lookup_table(w1), lookup_table(w1))
 
         values = line[-11:-1]
         values = [float(x) for x in values]

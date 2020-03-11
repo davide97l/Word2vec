@@ -11,7 +11,7 @@ import os
 
 
 if __name__ == '__main__':
-    # python embedding_eval.py -e output_wiki_s_300/embed.npy -v output_wiki_s_300/vocab.txt -s -a
+    # python embedding_eval.py -e output_wiki_m_300/embed.npy -v output_wiki_m_300/vocab.txt -sv results/ -s -a
     ap = argparse.ArgumentParser()
     ap.add_argument("-e", "--embed_path", type=str, required=True,
                     help="path to the embedding (embedding.npy)")
@@ -41,6 +41,10 @@ if __name__ == '__main__':
     # Configure logging
     logging.basicConfig(format='%(asctime)s %(levelname)s:%(message)s', level=logging.DEBUG, datefmt='%I:%M:%S')
 
+    if not os.path.exists(save_path):
+        os.makedirs(save_path)
+    f = open(os.path.join(save_path, "analogy-smiliarity.txt"), "w+")
+
     if similarity:
 
         # Define tasks
@@ -55,6 +59,7 @@ if __name__ == '__main__':
         spearman_errors = []
         cosine_errors = []
         print("----------SIMILARITY----------")
+        f.write("----------SIMILARITY----------\n")
         for name, data in iteritems(tasks):
             # print("Sampling data from ", name)
             spearman_err = 0
@@ -80,13 +85,11 @@ if __name__ == '__main__':
             spearman_errors.append(spearman_err)
             cosine_errors.append(cosine_err)
             print("Spearman correlation error on {} dataset: {}".format(name, spearman_err))
+            f.write("Spearman correlation error on {} dataset: {}\n".format(name, spearman_err))
             print("Cosine similarity error on {} dataset: {}".format(name, cosine_err))
+            f.write("Cosine similarity error on {} dataset: {}\n".format(name, cosine_err))
 
     if analogy:
-
-        if not os.path.exists(save_path):
-            os.makedirs(save_path)
-        f = open(os.path.join(save_path, "analogy.txt"), "w+")
 
         # Fetch analogy dataset
         data = fetch_google_analogy()
@@ -94,12 +97,15 @@ if __name__ == '__main__':
         word_embed = dict(zip(vocab, embed))
 
         print("----------ANALOGY----------")
+        f.write("----------ANALOGY----------\n")
         # Pick a sample of data and calculate answers
         guessed = 0
         subset = list(chain(range(50, 70), range(1000, 1020), range(4000, 4020), range(10000, 10020),
                       range(14000, 14020)))
         for id in subset:
             w1, w2, w3 = data.X[id][0], data.X[id][1], data.X[id][2]
+            if w1 not in vocab or w2 not in vocab or w3 not in vocab:
+                continue
             print("Question: {} is to {} as {} is to ?".format(w1, w2, w3))
             f.write("Question: {} is to {} as {} is to ?\n".format(w1, w2, w3))
             print("Answer: " + data.y[id])
@@ -122,4 +128,5 @@ if __name__ == '__main__':
                 guessed += 1
 
         print("Questions correctly answered: {} / {}".format(guessed, len(subset)))
-        f.close()
+        f.write("Questions correctly answered: {} / {}\n".format(guessed, len(subset)))
+    f.close()
