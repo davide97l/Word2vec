@@ -73,15 +73,14 @@ if __name__ == '__main__':
                 spearman_corr, _ = spearmanr(lookup_table(word1), lookup_table(word2))
                 spearman_corr = abs(spearman_corr)
                 spearman_err += abs(spearman_corr - data.y[i] / 10)
-                # print(word1, word2, data.y[i], spearman_corr)
 
                 cosine_sim = 1 - spatial.distance.cosine(lookup_table(word1), lookup_table(word2))
                 cosine_err += abs(cosine_sim - data.y[i] / 10)
                 # print(word1, word2, data.y[i], cosine_sim)
 
                 analogies += 1
-            spearman_err /= analogies
-            cosine_err /= analogies
+            spearman_err = 1 - spearman_err / analogies
+            cosine_err = 1 - cosine_err / analogies
             spearman_errors.append(spearman_err)
             cosine_errors.append(cosine_err)
             print("Spearman correlation error on {} dataset: {}".format(name, spearman_err))
