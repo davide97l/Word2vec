@@ -139,7 +139,7 @@ def sentence_disambiguation(sentence, embed, vocab, cosine_sim_threshold=0.05, s
 
 if __name__ == '__main__':
     """
-    python word_sense_disambiguation.py -e output_wiki_s_300/embed.npy -v output_wiki_s_300/vocab.txt
+    python word_sense_disambiguation.py -e output_wiki_m_300/embed.npy -v output_wiki_m_300/vocab.txt
     """
     ap = argparse.ArgumentParser()
     ap.add_argument("-e", "--embed_path", type=str, required=True,
@@ -208,10 +208,10 @@ if __name__ == '__main__':
         sense1 = e1[idx_w1]
         e2, _ = sentence_disambiguation(sentence2_clean, embed, vocab, cosine_sim_threshold, score_margin_threshold)
         sense2 = e2[idx_w2]
-        dist1_2 = cosine_similarity(sense1, sense2)
+        dist1_2 = abs(cosine_similarity(sense1, sense2))
 
         if not disambiguate:
-            dist1_2 = cosine_similarity(lookup_table(w1), lookup_table(w1))
+            dist1_2 = abs(cosine_similarity(lookup_table(w1), lookup_table(w2)))
 
         values = line[-11:-1]
         values = [float(x) for x in values]
@@ -222,5 +222,6 @@ if __name__ == '__main__':
         f.write("{} {} {} {} {} {}\n".format(sentences, w1, w2, dist1_2, real_value, err))
         sentences += 1
 
-    print("Average error on SCWS dataset: ", tot_err / sentences)
+    print("Similarity on SCWS dataset: ", 1 - tot_err / sentences)
+    f.write("Similarity on SCWS dataset: {}\n".format(1 - tot_err / sentences))
     f.close()
