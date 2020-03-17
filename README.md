@@ -4,7 +4,7 @@ Tensorflow implementation of Word2Vec, a classic model for learning distributed 
 
 ## Training
 
-1) **Prepare your data**: Your data should be one or more of text files where each line contains a sentence, and words are delimited by space. Make sure all of your data is placed inside the same folder.
+1) **Prepare your data**: Your data should be one or more of text files where each line contains a sentence, and words are delimited by space.
 2) This implementation allows you to train the model under **skip gram** or **continuous bag-of-words** architectures (`--arch`), and perform training using **negative sampling** or **hierarchical softmax** (`--algm`). To see a full list of parameters, run`python run_training.py --help`.
 3) For example you can train your model with the following command:
 ```
