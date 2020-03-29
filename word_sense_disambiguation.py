@@ -1,9 +1,12 @@
 import nltk
 
-# nltk.download('wordnet')
-# nltk.download('stopwords')
-# nltk.download('punkt')
-# nltk.download('averaged_perceptron_tagger')
+# comment the following after download
+nltk.download('wordnet')
+nltk.download('stopwords')
+nltk.download('punkt')
+nltk.download('averaged_perceptron_tagger')
+# -------------------------------------
+
 from nltk.corpus import wordnet as wn
 import numpy as np
 from numpy import average
